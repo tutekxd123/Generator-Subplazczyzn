@@ -7,6 +7,11 @@
 #include <unordered_set>
 #include <format>
 #include <unordered_map>
+#include <nlohmann/json.hpp>
+#include <fstream>
+using json = nlohmann::json;
+//Mozna uzyc Glaze do szybszej serializacji ale nie ma potrzeby tutaj, w celu prostszej implementacji uzyjemy nlohmann json
+
 struct PairHash {
     std::size_t operator()(const std::pair<int, int>& p) const noexcept {
         return std::hash<int>()(p.first) ^ (std::hash<int>()(p.second) << 1); //Hash to pary <int,int> prosty(zeby set mogl wyszukiwac>)
@@ -34,6 +39,8 @@ public:
         return std::format("{},{}", this->x, this->y);
     }
 };
+
+
 
 struct Edge {
 public:
@@ -106,7 +113,8 @@ class Graph {
 
             for (int i = 0; i < sizemap; i++) {
                 //Indexy powinny byc rowne z id w vectorze
-                int CountConnect = GenerateNumber(1, Grids[i].points.size()/2); //Ilosc polaczen miedzy mapa X a Mapami //uwzgledniam kolzije teoretycznie powinnismy wyliczyc mozliwe punkty, ale przyblizenie moze byc
+				int max = Grids[i].points.size() / 2 > Grids.size() ? Grids.size() / 2 : Grids[i].points.size() / 2;
+                int CountConnect = GenerateNumber(1, max); //Ilosc polaczen miedzy mapa X a Mapami //uwzgledniam kolzije teoretycznie powinnismy wyliczyc mozliwe punkty, ale przyblizenie moze byc
                 CountConnect -= Grids[i].Edges.size(); //Odejujemy juz krawedzie ktore mamy bo generujemy krawedzie symetrycznie!
 
                 for (int j = 0; j < CountConnect; j++) {
@@ -150,11 +158,39 @@ class Graph {
     
 };
 
+//Serializacja JSON nlohmann zeby nlohman wiedzial jak to robic
+//Kazda klasa
+void to_json(json& j, const Point& p) {
+    j = json{ {"x", p.x}, {"y", p.y}, {"collision", p.collision} };
+}
+
+void to_json(json& j, const Edge& e) {
+    j = json{
+        {"idMapConnect", e.idMapConnect},
+        {"Grid1Point", e.Grid1Point ? *e.Grid1Point : Point{0,0}},
+        {"Grid2Point", e.Grid2Point ? *e.Grid2Point : Point{0,0}}
+    };
+}
+void to_json(json& j, const Grid& g) {
+    j = json{
+        {"id", g.id},
+        {"width", g.width},
+        {"height", g.height},
+        {"points", g.points},
+        {"Edges", g.Edges}
+    };
+}
+void to_json(json& j, const Graph& gr) {
+    j = json{
+        {"Grids", gr.Grids}
+    };
+}
+//END
 
 int main()
 {
     srand(time(NULL));
-    Graph testgraph = Graph(1000, 5, 5, 100, 5, 100);
+    Graph testgraph = Graph(10, 5, 5, 100, 5, 100);
     size_t totalSize = sizeof(testgraph);
     totalSize += testgraph.Grids.capacity() * sizeof(Grid);
     for (auto& grid : testgraph.Grids) {
@@ -163,7 +199,11 @@ int main()
     }
     std::cout << "Size of TestGraph: " << totalSize;
     //Saving to JSON? for test A++
-
+    json savegraph = testgraph;
+	std::string stringjson = savegraph.dump(4);
+	std::ofstream writeFile("generated_subspaces.json");
+	writeFile << stringjson;
+    writeFile.close();
     return 0;
 
 }
