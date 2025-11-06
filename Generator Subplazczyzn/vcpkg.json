@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "dependencies": [
+    "nlohmann-json"
+  ],
+  "builtin-baseline": "f391908e74c7ecaf910fbb006e6edd512094fa7f"
+}
