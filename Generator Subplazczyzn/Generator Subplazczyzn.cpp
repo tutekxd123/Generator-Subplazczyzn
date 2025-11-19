@@ -245,7 +245,7 @@ int main()
         totalSize += grid.Edges.capacity() * sizeof(Edge);
     }
     std::cout << "Size of TestGraph: " << totalSize;
-	testgraph.MakeBadData(testgraph);
+	//testgraph.MakeBadData(testgraph);
 	testgraph.GetNumberMapsAndEgdes(testgraph);
     std::string stringjson = glz::write_json(testgraph).value_or("errorjson");
     std::ofstream writeFile("generated_subspaces.json");
