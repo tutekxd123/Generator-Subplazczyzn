@@ -1,4 +1,4 @@
-﻿// Generator Subplazczyzn.cpp : Ten plik zawiera funkcję „main”. W nim rozpoczyna się i kończy wykonywanie programu.
+// Generator Subplazczyzn.cpp : Ten plik zawiera funkcję „main”. W nim rozpoczyna się i kończy wykonywanie programu.
 //
 
 #include <iostream>
@@ -83,7 +83,8 @@ public:
                     if (PointsonGridTaken.contains(pointtostring)) {
                         continue;
                     }
-                    return &point;
+                    PointsonGridTaken.insert(pointtostring);
+;                    return &point;
                 }
                 maxretry--;
             }
@@ -98,6 +99,37 @@ class Graph {
     public:
         //Vector Siatek i generowanie miedzy nimi przejsc?
         std::vector<Grid>Grids;
+        void GetNumberMapsAndEgdes(const Graph& graph) {
+			int numberOfMaps = graph.Grids.size();
+			int numberofEdges = 0;
+            for(auto& grid:graph.Grids){
+                numberofEdges += grid.Edges.size();
+			}
+			std::cout << "Number of Maps: " << numberOfMaps << ", Number of Edges: " << numberofEdges << std::endl;
+            return;
+		}
+        void MakeBadData(Graph& graph) {
+            //Robimy wredne dane wiec generujemy losowa mape
+            //Potem przechodzimy do wszystkich krawedzi prowadzaca do tej mapy i wokol wezlow granicznych robimy kolizje co spowoduje najgorsze dane/przypadek
+			int randomMapIndex = GenerateNumber(0, graph.Grids.size() - 1);
+            Grid& badGrid = graph.Grids[randomMapIndex];
+            for (Edge& edge : badGrid.Edges) {
+                Point* pointInBadGrid = edge.Grid2Point; //Punkt w zlej mapie
+				Grid& otherGrid = graph.Grids[edge.idMapConnect];
+                //Robimy kolizje wokol tego punktu
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        int newX = pointInBadGrid->x + dx;
+                        int newY = pointInBadGrid->y + dy;
+                        if (newX >= 0 && newX < otherGrid.width && newY >= 0 && newY < otherGrid.height) {
+                            Point& neighborPoint = otherGrid.getPoint(newX, newY);
+                            neighborPoint.collision = true; //Ustawiamy kolizje na sasiadach;
+                        }
+                    }
+                }
+			}
+			std::cout << "Generated bad data on map index: " << randomMapIndex<<"ID: "<<badGrid.id << std::endl;
+        }
         Graph(int sizemap = 10, int maxconnonmaps = 5,int minx=0,int maxx=100,int miny=0,int maxy=100, int chanceofcoll=20) {
             Grids.reserve(sizemap);
             for (int i = 0; i < sizemap; i++) {
@@ -205,7 +237,7 @@ int main()
 
 
     srand(time(NULL));
-    Graph testgraph = Graph(9999, 6, 16, 100, 16, 100,20);
+    Graph testgraph = Graph(15, 5, 32, 32, 32, 32,0);
     size_t totalSize = sizeof(testgraph);
     totalSize += testgraph.Grids.capacity() * sizeof(Grid);
     for (auto& grid : testgraph.Grids) {
@@ -213,6 +245,8 @@ int main()
         totalSize += grid.Edges.capacity() * sizeof(Edge);
     }
     std::cout << "Size of TestGraph: " << totalSize;
+	testgraph.MakeBadData(testgraph);
+	testgraph.GetNumberMapsAndEgdes(testgraph);
     std::string stringjson = glz::write_json(testgraph).value_or("errorjson");
     std::ofstream writeFile("generated_subspaces.json");
     writeFile << stringjson;
