@@ -20,5 +20,14 @@ Architecture: x64-windows
 Multi-Arch: same
 Abi: bc434a80db64b1140aa7551802593352b8d6b189c0ff2a02570b9e217adb227b
 Description: JSON for Modern C++
+Status: purge ok not-installed
+
+Package: glaze
+Version: 6.0.1
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 02dda5cd95e3b75de361f286bff7b9466592525e6282784120e2c8056962ba37
+Description: One of the fastest JSON libraries in the world. Glaze reads and writes from C++ memory, simplifying interfaces and offering incredible performance.
 Status: install ok installed
 

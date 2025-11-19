@@ -7,9 +7,8 @@
 #include <unordered_set>
 #include <format>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
+#include <glaze/glaze.hpp>
 #include <fstream>
-using json = nlohmann::json;
 //Mozna uzyc Glaze do szybszej serializacji ale nie ma potrzeby tutaj, w celu prostszej implementacji uzyjemy nlohmann json
 
 struct PairHash {
@@ -158,37 +157,51 @@ class Graph {
     
 };
 
-//Serializacja JSON nlohmann zeby nlohman wiedzial jak to robic
-//Kazda klasa
-void to_json(json& j, const Point& p) {
-    j = json{ {"x", p.x}, {"y", p.y}, {"collision", p.collision} };
-}
+template<>
+struct glz::meta<Point> {
+    using T = Point;
+    static constexpr auto value = object(
+        "x",&T::x,
+        "y",&T::y,
+        "collision",&T::collision
 
-void to_json(json& j, const Edge& e) {
-    j = json{
-        {"idMapConnect", e.idMapConnect},
-        {"Grid1Point", e.Grid1Point ? *e.Grid1Point : Point{0,0}},
-        {"Grid2Point", e.Grid2Point ? *e.Grid2Point : Point{0,0}}
-    };
-}
-void to_json(json& j, const Grid& g) {
-    j = json{
-        {"id", g.id},
-        {"width", g.width},
-        {"height", g.height},
-        {"points", g.points},
-        {"Edges", g.Edges}
-    };
-}
-void to_json(json& j, const Graph& gr) {
-    j = json{
-        {"Grids", gr.Grids}
-    };
-}
-//END
+    );
+};
+template<>
+struct glz::meta<Edge> {
+    using T = Edge;
+    static constexpr auto value = object(
+        "idMapConnect",&T::idMapConnect,
+        "Grid1Point",&T::Grid1Point,
+        "Grid2Point",&T::Grid2Point
+    );
+};
 
+template<>
+struct glz::meta<Grid> {
+    using T = Grid;
+    static constexpr auto value = object(
+        "id",&T::id,
+        "width",&T::width,
+        "points",&T::points,
+        "Edges", &T::Edges,
+        "height",& T::height
+    );
+};
+template<>
+struct glz::meta<Graph> {
+    using T = Graph;
+    static constexpr auto value = object(
+        "Grids", &T::Grids
+    );
+};
 int main()
 {
+    //Okay Przerabiamy tak zeby byly nie losowe dane, lecz wredne dane?
+    //Przypadki brzegowe?
+    //1->2->3->4->5 (i zawsze po przekatnej jednej i drugiej w sumie mozna 4 takie przekatne?
+
+
     srand(time(NULL));
     Graph testgraph = Graph(10, 5, 5, 100, 5, 100);
     size_t totalSize = sizeof(testgraph);
@@ -198,12 +211,11 @@ int main()
         totalSize += grid.Edges.capacity() * sizeof(Edge);
     }
     std::cout << "Size of TestGraph: " << totalSize;
-    //Saving to JSON? for test A++
-    json savegraph = testgraph;
-	std::string stringjson = savegraph.dump(4);
-	std::ofstream writeFile("generated_subspaces.json");
-	writeFile << stringjson;
+    std::string stringjson = glz::write_json(testgraph).value_or("errorjson");
+    std::ofstream writeFile("generated_subspaces.json");
+    writeFile << stringjson;
     writeFile.close();
+    
     return 0;
 
 }
