@@ -205,7 +205,7 @@ int main()
 
 
     srand(time(NULL));
-    Graph testgraph = Graph(800, 6, 16, 100, 16, 100,20);
+    Graph testgraph = Graph(9999, 6, 16, 100, 16, 100,20);
     size_t totalSize = sizeof(testgraph);
     totalSize += testgraph.Grids.capacity() * sizeof(Grid);
     for (auto& grid : testgraph.Grids) {
