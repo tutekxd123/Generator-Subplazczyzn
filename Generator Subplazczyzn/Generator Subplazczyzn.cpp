@@ -113,14 +113,16 @@ class Graph {
             for (int i = 0; i < sizemap; i++) {
                 //Indexy powinny byc rowne z id w vectorze
 				int max = Grids[i].points.size() / 2 > Grids.size() ? Grids.size() / 2 : Grids[i].points.size() / 2;
-                int CountConnect = GenerateNumber(1, max); //Ilosc polaczen miedzy mapa X a Mapami //uwzgledniam kolzije teoretycznie powinnismy wyliczyc mozliwe punkty, ale przyblizenie moze byc
+
+                int CountConnect = GenerateNumber(1, maxconnonmaps-1); //Ilosc polaczen miedzy mapa X a Mapami //uwzgledniam kolzije teoretycznie powinnismy wyliczyc mozliwe punkty, ale przyblizenie moze byc
                 CountConnect -= Grids[i].Edges.size(); //Odejujemy juz krawedzie ktore mamy bo generujemy krawedzie symetrycznie!
 
                 for (int j = 0; j < CountConnect; j++) {
                     int ConnectTO = GenerateNumber(0, Grids.size() - 1); //ID mapy do ktorej sie laczymy
                     //Musimy wygenerować Punkt graniczny na mapie nr.1 i mapie nr.2, który nie jest kolizja
 
-                    if (ConnectTO == i) {
+                    
+                    if (ConnectTO == i || Grids[ConnectTO].Edges.size() > maxconnonmaps) {
                         j--;
                         continue;
                     } //Ta sama mapa to nie bedziemy sie laczyc :D sam ze soba
@@ -203,7 +205,7 @@ int main()
 
 
     srand(time(NULL));
-    Graph testgraph = Graph(10, 5, 5, 100, 5, 100);
+    Graph testgraph = Graph(800, 6, 16, 100, 16, 100,20);
     size_t totalSize = sizeof(testgraph);
     totalSize += testgraph.Grids.capacity() * sizeof(Grid);
     for (auto& grid : testgraph.Grids) {
